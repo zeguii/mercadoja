@@ -1,0 +1,4 @@
+﻿dsn.txt
+__pycache__/
+*.pyc
+resultado_*.txt
