@@ -1,0 +1,103 @@
+erDiagram
+    CLIENTE ||--o{ PEDIDO : faz
+    CLIENTE ||--o{ AVALIACAO : escreve
+    LOJA ||--o{ PRODUTO : vende
+    CATEGORIA ||--o{ CATEGORIA : "e filha de"
+    CATEGORIA ||--o{ PRODUTO : classifica
+    PEDIDO ||--o{ ITEM_PEDIDO : contem
+    PRODUTO ||--o{ ITEM_PEDIDO : "e vendido em"
+    PEDIDO ||--o{ PAGAMENTO : gera
+    PEDIDO ||--o{ ENTREGA : gera
+    PEDIDO ||--o{ AVALIACAO : recebe
+    PRODUTO ||--o{ AVALIACAO : recebe
+
+    CLIENTE {
+        bigint cliente_id PK
+        varchar nome
+        varchar email UK
+        varchar telefone
+        varchar cidade
+        char uf
+        date data_cadastro
+        varchar segmento
+    }
+
+    LOJA {
+        bigint loja_id PK
+        varchar nome_fantasia
+        char cnpj UK
+        varchar cidade
+        char uf
+        varchar plano_assinatura
+        date data_adesao
+        boolean ativa
+    }
+
+    CATEGORIA {
+        int categoria_id PK
+        varchar nome
+        int categoria_pai_id FK
+    }
+
+    PRODUTO {
+        bigint produto_id PK
+        bigint loja_id FK
+        int categoria_id FK
+        varchar nome
+        text descricao
+        numeric preco
+        int estoque
+        boolean ativo
+        timestamp data_criacao
+    }
+
+    PEDIDO {
+        bigint pedido_id PK
+        bigint cliente_id FK
+        timestamp data_pedido
+        varchar status
+        varchar canal_venda
+        varchar cidade_entrega
+        char uf_entrega
+        numeric valor_produtos
+        numeric valor_frete
+        numeric valor_desconto
+    }
+
+    ITEM_PEDIDO {
+        bigint item_pedido_id PK
+        bigint pedido_id FK
+        bigint produto_id FK
+        int quantidade
+        numeric preco_unitario
+        numeric desconto_item
+    }
+
+    PAGAMENTO {
+        bigint pagamento_id PK
+        bigint pedido_id FK
+        varchar metodo
+        varchar status
+        numeric valor
+        timestamp data_pagamento
+    }
+
+    ENTREGA {
+        bigint entrega_id PK
+        bigint pedido_id FK
+        varchar transportadora
+        varchar status
+        timestamp data_envio
+        timestamp data_entrega
+        numeric custo_frete
+    }
+
+    AVALIACAO {
+        bigint avaliacao_id PK
+        bigint pedido_id FK
+        bigint produto_id FK
+        bigint cliente_id FK
+        smallint nota
+        text comentario
+        timestamp data_avaliacao
+    }
