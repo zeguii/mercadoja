@@ -1,0 +1,98 @@
+                                                                                                   QUERY PLAN                                                                                                   
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=66115.92..66116.17 rows=100 width=68) (actual time=634.266..634.376 rows=100 loops=1)
+   Buffers: shared hit=9667 read=12659, temp read=303 written=304
+   CTE pedidos_entregues_tri
+     ->  Gather  (cost=1000.00..11279.09 rows=23682 width=8) (actual time=1.506..43.489 rows=36081 loops=1)
+           Workers Planned: 2
+           Workers Launched: 2
+           Buffers: shared read=4760
+           ->  Parallel Seq Scan on entrega e  (cost=0.00..7910.89 rows=9868 width=8) (actual time=0.017..22.472 rows=12027 loops=3)
+                 Filter: ((data_entrega >= '2026-06-16 00:00:00'::timestamp without time zone) AND (data_entrega < '2026-09-16 00:00:00'::timestamp without time zone) AND ((status)::text = 'entregue'::text))
+                 Rows Removed by Filter: 132014
+                 Buffers: shared read=4760
+   ->  Sort  (cost=54836.83..54838.22 rows=557 width=68) (actual time=634.265..634.284 rows=100 loops=1)
+         Sort Key: (round(n.nota_media, 2)) DESC, (count(DISTINCT itens_por_loja.pedido_id)) DESC, itens_por_loja.loja_id
+         Sort Method: top-N heapsort  Memory: 37kB
+         Buffers: shared hit=9667 read=12659, temp read=303 written=304
+         ->  Hash Join  (cost=53995.92..54815.54 rows=557 width=68) (actual time=612.299..633.700 rows=1160 loops=1)
+               Hash Cond: (itens_por_loja.loja_id = n.loja_id)
+               Buffers: shared hit=9664 read=12659, temp read=303 written=304
+               ->  Merge Join  (cost=45158.27..45976.32 rows=67 width=44) (actual time=439.655..460.120 rows=4941 loops=1)
+                     Merge Cond: (itens_por_loja.loja_id = l.loja_id)
+                     Buffers: shared hit=8462 read=5789, temp read=303 written=304
+                     ->  GroupAggregate  (cost=45157.99..45760.03 rows=67 width=16) (actual time=439.623..457.915 rows=4941 loops=1)
+                           Group Key: itens_por_loja.loja_id
+                           Filter: (count(DISTINCT itens_por_loja.pedido_id) >= 5)
+                           Rows Removed by Filter: 59
+                           Buffers: shared hit=8399 read=5777, temp read=303 written=304
+                           ->  Sort  (cost=45157.99..45357.84 rows=79939 width=16) (actual time=439.610..448.113 rows=94900 loops=1)
+                                 Sort Key: itens_por_loja.loja_id, itens_por_loja.pedido_id
+                                 Sort Method: external merge  Disk: 2424kB
+                                 Buffers: shared hit=8399 read=5777, temp read=303 written=304
+                                 ->  Subquery Scan on itens_por_loja  (cost=37049.54..38648.32 rows=79939 width=16) (actual time=380.282..404.422 rows=94900 loops=1)
+                                       Buffers: shared hit=8399 read=5777
+                                       ->  HashAggregate  (cost=37049.54..37848.93 rows=79939 width=16) (actual time=380.281..395.217 rows=94900 loops=1)
+                                             Group Key: ip.pedido_id, pr.loja_id
+                                             Batches: 1  Memory Usage: 6929kB
+                                             Buffers: shared hit=8399 read=5777
+                                             ->  Hash Join  (cost=2101.35..36649.84 rows=79939 width=16) (actual time=30.847..348.334 rows=94933 loops=1)
+                                                   Hash Cond: (ip.produto_id = pr.produto_id)
+                                                   Buffers: shared hit=8399 read=5777
+                                                   ->  Hash Join  (cost=537.35..34875.98 rows=79939 width=16) (actual time=20.181..307.340 rows=94933 loops=1)
+                                                         Hash Cond: (ip.pedido_id = pedidos_entregues_tri.pedido_id)
+                                                         Buffers: shared hit=7735 read=5777
+                                                         ->  Seq Scan on item_pedido ip  (cost=0.00..29303.93 rows=1579193 width=16) (actual time=0.012..117.558 rows=1579193 loops=1)
+                                                               Buffers: shared hit=7735 read=5777
+                                                         ->  Hash  (cost=534.85..534.85 rows=200 width=8) (actual time=20.143..20.145 rows=36081 loops=1)
+                                                               Buckets: 65536 (originally 1024)  Batches: 1 (originally 1)  Memory Usage: 1922kB
+                                                               ->  HashAggregate  (cost=532.85..534.85 rows=200 width=8) (actual time=11.267..15.597 rows=36081 loops=1)
+                                                                     Group Key: pedidos_entregues_tri.pedido_id
+                                                                     Batches: 1  Memory Usage: 3105kB
+                                                                     ->  CTE Scan on pedidos_entregues_tri  (cost=0.00..473.64 rows=23682 width=8) (actual time=0.001..2.423 rows=36081 loops=1)
+                                                   ->  Hash  (cost=1064.00..1064.00 rows=40000 width=16) (actual time=10.417..10.418 rows=40000 loops=1)
+                                                         Buckets: 65536  Batches: 1  Memory Usage: 2387kB
+                                                         Buffers: shared hit=664
+                                                         ->  Seq Scan on produto pr  (cost=0.00..1064.00 rows=40000 width=16) (actual time=0.007..4.064 rows=40000 loops=1)
+                                                               Buffers: shared hit=664
+                     ->  Index Scan using loja_pkey on loja l  (cost=0.28..202.28 rows=5000 width=28) (actual time=0.025..0.781 rows=5000 loops=1)
+                           Buffers: shared hit=63 read=12
+               ->  Hash  (cost=8816.86..8816.86 rows=1663 width=40) (actual time=172.615..172.621 rows=1174 loops=1)
+                     Buckets: 2048  Batches: 1  Memory Usage: 74kB
+                     Buffers: shared hit=1202 read=6870
+                     ->  Subquery Scan on n  (cost=8725.41..8816.86 rows=1663 width=40) (actual time=170.931..172.406 rows=1174 loops=1)
+                           Buffers: shared hit=1202 read=6870
+                           ->  HashAggregate  (cost=8725.41..8800.23 rows=1663 width=40) (actual time=170.930..172.291 rows=1174 loops=1)
+                                 Group Key: pr_1.loja_id
+                                 Filter: (avg(av.nota) >= 4.5)
+                                 Batches: 1  Memory Usage: 977kB
+                                 Rows Removed by Filter: 3721
+                                 Buffers: shared hit=1202 read=6870
+                                 ->  Hash Join  (cost=2101.35..8506.80 rows=43723 width=10) (actual time=88.076..162.337 rows=32093 loops=1)
+                                       Hash Cond: (av.produto_id = pr_1.produto_id)
+                                       Buffers: shared hit=1202 read=6870
+                                       ->  Hash Join  (cost=537.35..6828.01 rows=43723 width=10) (actual time=77.825..142.708 rows=32093 loops=1)
+                                             Hash Cond: (av.pedido_id = pedidos_entregues_tri_1.pedido_id)
+                                             Buffers: shared hit=538 read=6870
+                                             ->  Seq Scan on avaliacao av  (cost=0.00..5148.00 rows=250000 width=18) (actual time=0.012..27.809 rows=250000 loops=1)
+                                                   Buffers: shared hit=538 read=2110
+                                             ->  Hash  (cost=534.85..534.85 rows=200 width=8) (actual time=77.789..77.791 rows=36081 loops=1)
+                                                   Buckets: 65536 (originally 1024)  Batches: 1 (originally 1)  Memory Usage: 1922kB
+                                                   Buffers: shared read=4760
+                                                   ->  HashAggregate  (cost=532.85..534.85 rows=200 width=8) (actual time=68.750..73.124 rows=36081 loops=1)
+                                                         Group Key: pedidos_entregues_tri_1.pedido_id
+                                                         Batches: 1  Memory Usage: 3105kB
+                                                         Buffers: shared read=4760
+                                                         ->  CTE Scan on pedidos_entregues_tri pedidos_entregues_tri_1  (cost=0.00..473.64 rows=23682 width=8) (actual time=1.509..49.052 rows=36081 loops=1)
+                                                               Buffers: shared read=4760
+                                       ->  Hash  (cost=1064.00..1064.00 rows=40000 width=16) (actual time=10.014..10.015 rows=40000 loops=1)
+                                             Buckets: 65536  Batches: 1  Memory Usage: 2387kB
+                                             Buffers: shared hit=664
+                                             ->  Seq Scan on produto pr_1  (cost=0.00..1064.00 rows=40000 width=16) (actual time=0.010..4.411 rows=40000 loops=1)
+                                                   Buffers: shared hit=664
+ Planning:
+   Buffers: shared hit=270 read=2
+ Planning Time: 1.075 ms
+ Execution Time: 636.199 ms
+(94 rows)
+

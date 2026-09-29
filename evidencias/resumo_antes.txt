@@ -1,0 +1,10 @@
+q1               execucoes=[3298.175, 2332.157, 2298.082]  mediana=2332.2 ms  blocos=1351
+q2               execucoes=[2413.598, 2162.174, 2009.952]  mediana=2162.2 ms  blocos=3776
+q3               execucoes=[1047.071, 916.878, 867.843]  mediana=916.9 ms  blocos=1741
+q4               execucoes=[221.987, 216.307, 213.57]  mediana=216.3 ms  blocos=2529
+q5               execucoes=[12.671, 12.921, 13.634]  mediana=12.9 ms  blocos=658
+q6               execucoes=[961.838, 692.034, 668.375]  mediana=692.0 ms  blocos=6437
+q7               execucoes=[785.595, 692.374, 707.167]  mediana=707.2 ms  blocos=4719
+q8               execucoes=[1748.051, 1698.165, 1688.301]  mediana=1698.2 ms  blocos=8264
+q9               execucoes=[2220.706, 1518.236, 1819.644]  mediana=1819.6 ms  blocos=219
+legado_antes     execucoes=[444.871, 414.814, 409.373]  mediana=414.8 ms  blocos=1368

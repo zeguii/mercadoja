@@ -1,0 +1,20 @@
+                                                                     QUERY PLAN                                                                     
+----------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=7.45..366.18 rows=50 width=40) (actual time=1.187..1.460 rows=50 loops=1)
+   Buffers: shared hit=836
+   ->  Incremental Sort  (cost=7.45..2949.09 rows=410 width=40) (actual time=1.187..1.455 rows=50 loops=1)
+         Sort Key: preco, produto_id
+         Presorted Key: preco
+         Full-sort Groups: 2  Sort Method: quicksort  Average Memory: 27kB  Peak Memory: 27kB
+         Buffers: shared hit=836
+         ->  Index Scan using idx_produto_ativo_preco on produto  (cost=0.29..2930.64 rows=410 width=40) (actual time=0.062..1.409 rows=51 loops=1)
+               Index Cond: ((preco >= 50.00) AND (preco <= 600.00))
+               Filter: ((nome)::text ~~* '%fone bluetooth%'::text)
+               Rows Removed by Filter: 775
+               Buffers: shared hit=827
+ Planning:
+   Buffers: shared hit=171
+ Planning Time: 0.888 ms
+ Execution Time: 1.486 ms
+(16 rows)
+

@@ -1,0 +1,32 @@
+                                                                QUERY PLAN                                                                
+------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=70057.67..70057.92 rows=100 width=25) (actual time=358.911..358.927 rows=100 loops=1)
+   Buffers: shared hit=2188 read=7392, temp read=1717 written=3432
+   ->  Sort  (cost=70057.67..70331.96 rows=109716 width=25) (actual time=358.909..358.917 rows=100 loops=1)
+         Sort Key: (count(*)) DESC
+         Sort Method: top-N heapsort  Memory: 32kB
+         Buffers: shared hit=2188 read=7392, temp read=1717 written=3432
+         ->  Hash Join  (cost=55040.60..65864.40 rows=109716 width=25) (actual time=241.049..358.492 rows=1610 loops=1)
+               Hash Cond: (pedido.cliente_id = c.cliente_id)
+               Buffers: shared hit=2185 read=7392, temp read=1717 written=3432
+               ->  HashAggregate  (cost=51350.60..60789.23 rows=109716 width=20) (actual time=211.741..328.179 rows=1610 loops=1)
+                     Group Key: pedido.cliente_id, (pedido.data_pedido)::date
+                     Filter: (count(*) >= 2)
+                     Planned Partitions: 8  Batches: 9  Memory Usage: 8273kB  Disk Usage: 15592kB
+                     Rows Removed by Filter: 512858
+                     Buffers: shared hit=745 read=7392, temp read=1717 written=3432
+                     ->  Seq Scan on pedido  (cost=0.00..16929.80 rows=517120 width=12) (actual time=0.025..93.858 rows=516085 loops=1)
+                           Filter: ((status)::text <> 'cancelado'::text)
+                           Rows Removed by Filter: 83915
+                           Buffers: shared hit=745 read=7392
+               ->  Hash  (cost=2440.00..2440.00 rows=100000 width=21) (actual time=28.784..28.785 rows=100000 loops=1)
+                     Buckets: 131072  Batches: 1  Memory Usage: 6493kB
+                     Buffers: shared hit=1440
+                     ->  Seq Scan on cliente c  (cost=0.00..2440.00 rows=100000 width=21) (actual time=0.013..10.085 rows=100000 loops=1)
+                           Buffers: shared hit=1440
+ Planning:
+   Buffers: shared hit=220
+ Planning Time: 0.612 ms
+ Execution Time: 361.429 ms
+(28 rows)
+

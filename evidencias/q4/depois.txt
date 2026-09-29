@@ -1,0 +1,27 @@
+Finalize GroupAggregate  (cost=14703.29..14707.21 rows=12 width=52) (actual time=195.920..197.646 rows=12.00 loops=1)
+  Group Key: uf_entrega, canal_venda
+  Buffers: shared hit=7576
+  ->  Gather Merge  (cost=14703.29..14706.67 rows=29 width=52) (actual time=195.905..197.615 rows=36.00 loops=1)
+        Workers Planned: 2
+        Workers Launched: 2
+        Buffers: shared hit=7576
+        ->  Sort  (cost=13703.27..13703.30 rows=12 width=52) (actual time=186.617..186.619 rows=12.00 loops=3)
+              Sort Key: uf_entrega, canal_venda
+              Sort Method: quicksort  Memory: 26kB
+              Buffers: shared hit=7576
+              Worker 0:  Sort Method: quicksort  Memory: 26kB
+              Worker 1:  Sort Method: quicksort  Memory: 26kB
+              ->  Partial HashAggregate  (cost=13702.90..13703.05 rows=12 width=52) (actual time=186.580..186.585 rows=12.00 loops=3)
+                    Group Key: uf_entrega, canal_venda
+                    Batches: 1  Memory Usage: 32kB
+                    Buffers: shared hit=7546
+                    Worker 0:  Batches: 1  Memory Usage: 32kB
+                    Worker 1:  Batches: 1  Memory Usage: 32kB
+                    ->  Parallel Seq Scan on pedido  (cost=0.00..12227.50 rows=98360 width=27) (actual time=0.019..71.852 rows=78995.67 loops=3)
+                          Filter: ((data_pedido >= '2025-09-16 00:00:00'::timestamp without time zone) AND (data_pedido < '2026-09-16 00:00:00'::timestamp without time zone) AND ((status)::text = ANY ('{pago,enviado,entregue}'::text[])))
+                          Rows Removed by Filter: 121004
+                          Buffers: shared hit=7546
+Planning:
+  Buffers: shared hit=254
+Planning Time: 0.644 ms
+Execution Time: 197.803 ms

@@ -1,0 +1,16 @@
+Distribuição de status:
+('cancelado', 83915, Decimal('14.0'))
+('carrinho', 23812, Decimal('4.0'))
+('entregue', 282492, Decimal('47.1'))
+('enviado', 149630, Decimal('24.9'))
+('pago', 60151, Decimal('10.0'))
+
+EXPLAIN do filtro de baixa seletividade (~82% da tabela):
+Seq Scan on pedido  (cost=0.00..15790.00 rows=490120 width=15) (actual time=0.012..106.990 rows=492273.00 loops=1)
+  Filter: ((status)::text = ANY ('{pago,enviado,entregue}'::text[]))
+  Rows Removed by Filter: 107727
+  Buffers: shared hit=7540
+Planning:
+  Buffers: shared hit=49
+Planning Time: 0.173 ms
+Execution Time: 129.944 ms

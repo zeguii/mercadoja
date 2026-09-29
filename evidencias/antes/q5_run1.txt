@@ -1,0 +1,18 @@
+                                                        QUERY PLAN                                                        
+--------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=1377.49..1377.61 rows=50 width=40) (actual time=24.901..24.921 rows=50 loops=1)
+   Buffers: shared hit=670
+   ->  Sort  (cost=1377.49..1378.50 rows=406 width=40) (actual time=24.899..24.902 rows=50 loops=1)
+         Sort Key: preco, produto_id
+         Sort Method: top-N heapsort  Memory: 30kB
+         Buffers: shared hit=670
+         ->  Seq Scan on produto  (cost=0.00..1364.00 rows=406 width=40) (actual time=0.012..24.688 rows=439 loops=1)
+               Filter: (ativo AND ((nome)::text ~~* '%fone bluetooth%'::text) AND (preco >= 50.00) AND (preco <= 600.00))
+               Rows Removed by Filter: 39561
+               Buffers: shared hit=664
+ Planning:
+   Buffers: shared hit=88
+ Planning Time: 0.485 ms
+ Execution Time: 24.949 ms
+(14 rows)
+

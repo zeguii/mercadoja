@@ -1,0 +1,14 @@
+Tamanho de idx_pedido_canal_ignorado (antes de soltar): 4136 kB
+idx_pedido_canal_ignorado removido temporariamente (espaço liberado).
+idx_pedido_status_data (status, data_pedido) criado — é PREFIXO de idx_pedido_status_data_uf.
+
+Tamanho dos índices envolvidos:
+('idx_pedido_status_data_uf', '25 MB')
+('idx_pedido_status_data', '20 MB')
+
+idx_pedido_status_data REMOVIDO. Testando se consulta por status+data ainda usa o índice de 3 colunas:
+Aggregate  (cost=948.01..948.02 rows=1 width=8)
+  ->  Index Only Scan using idx_pedido_status_data_uf on pedido  (cost=0.42..901.69 rows=18528 width=0)
+        Index Cond: ((status = ANY ('{pago,enviado,entregue}'::text[])) AND (data_pedido >= '2026-06-01 00:00:00'::timestamp without time zone) AND (data_pedido < '2026-07-01 00:00:00'::timestamp without time zone))
+
+idx_pedido_canal_ignorado recriado (voltamos ao estado original de sql/indices.sql).

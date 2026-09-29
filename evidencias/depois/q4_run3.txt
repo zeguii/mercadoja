@@ -1,0 +1,31 @@
+                                                                                                                  QUERY PLAN                                                                                                                   
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Finalize GroupAggregate  (cost=15287.72..15291.00 rows=12 width=52) (actual time=180.706..182.184 rows=12 loops=1)
+   Group Key: uf_entrega, canal_venda
+   Buffers: shared hit=8105 read=68
+   ->  Gather Merge  (cost=15287.72..15290.52 rows=24 width=52) (actual time=180.691..182.150 rows=36 loops=1)
+         Workers Planned: 2
+         Workers Launched: 2
+         Buffers: shared hit=8105 read=68
+         ->  Sort  (cost=14287.70..14287.73 rows=12 width=52) (actual time=173.325..173.327 rows=12 loops=3)
+               Sort Key: uf_entrega, canal_venda
+               Sort Method: quicksort  Memory: 26kB
+               Buffers: shared hit=8105 read=68
+               Worker 0:  Sort Method: quicksort  Memory: 26kB
+               Worker 1:  Sort Method: quicksort  Memory: 26kB
+               ->  Partial HashAggregate  (cost=14287.33..14287.48 rows=12 width=52) (actual time=173.279..173.291 rows=12 loops=3)
+                     Group Key: uf_entrega, canal_venda
+                     Batches: 1  Memory Usage: 24kB
+                     Buffers: shared hit=8075 read=68
+                     Worker 0:  Batches: 1  Memory Usage: 24kB
+                     Worker 1:  Batches: 1  Memory Usage: 24kB
+                     ->  Parallel Seq Scan on pedido  (cost=0.00..12824.50 rows=97522 width=27) (actual time=0.020..82.203 rows=78996 loops=3)
+                           Filter: ((data_pedido >= '2025-09-16 00:00:00'::timestamp without time zone) AND (data_pedido < '2026-09-16 00:00:00'::timestamp without time zone) AND ((status)::text = ANY ('{pago,enviado,entregue}'::text[])))
+                           Rows Removed by Filter: 121004
+                           Buffers: shared hit=8075 read=68
+ Planning:
+   Buffers: shared hit=247
+ Planning Time: 0.600 ms
+ Execution Time: 182.290 ms
+(27 rows)
+

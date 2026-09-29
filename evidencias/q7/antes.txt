@@ -1,0 +1,28 @@
+Limit  (cost=84037.43..84037.68 rows=100 width=33) (actual time=703.700..703.716 rows=100.00 loops=1)
+  Buffers: shared hit=5145 read=3790, temp read=2575 written=5181
+  ->  Sort  (cost=84037.43..84466.10 rows=171467 width=33) (actual time=703.698..703.705 rows=100.00 loops=1)
+        Sort Key: (count(*)) DESC, c.cliente_id, ((p.data_pedido)::date)
+        Sort Method: top-N heapsort  Memory: 36kB
+        Buffers: shared hit=5145 read=3790, temp read=2575 written=5181
+        ->  HashAggregate  (cost=63592.61..77484.09 rows=171467 width=33) (actual time=515.195..702.980 rows=1610.00 loops=1)
+              Group Key: c.cliente_id, (p.data_pedido)::date
+              Filter: (count(*) >= 2)
+              Planned Partitions: 8  Batches: 9  Memory Usage: 8281kB  Disk Usage: 23616kB
+              Rows Removed by Filter: 512858
+              Buffers: shared hit=5139 read=3790, temp read=2575 written=5181
+              ->  Hash Join  (cost=3639.00..21315.36 rows=514400 width=25) (actual time=27.746..347.554 rows=516085.00 loops=1)
+                    Hash Cond: (p.cliente_id = c.cliente_id)
+                    Buffers: shared hit=5139 read=3790
+                    ->  Seq Scan on pedido p  (cost=0.00..15040.00 rows=514400 width=16) (actual time=0.112..83.643 rows=516085.00 loops=1)
+                          Filter: ((status)::text <> 'cancelado'::text)
+                          Rows Removed by Filter: 83915
+                          Buffers: shared hit=3750 read=3790
+                    ->  Hash  (cost=2389.00..2389.00 rows=100000 width=21) (actual time=27.350..27.351 rows=100000.00 loops=1)
+                          Buckets: 131072  Batches: 1  Memory Usage: 6493kB
+                          Buffers: shared hit=1389
+                          ->  Seq Scan on cliente c  (cost=0.00..2389.00 rows=100000 width=21) (actual time=0.011..9.962 rows=100000.00 loops=1)
+                                Buffers: shared hit=1389
+Planning:
+  Buffers: shared hit=177
+Planning Time: 3.177 ms
+Execution Time: 707.167 ms

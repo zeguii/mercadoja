@@ -1,0 +1,21 @@
+GroupAggregate  (cost=16590.55..17825.88 rows=8542 width=104) (actual time=359.014..409.090 rows=28.00 loops=1)
+  Group Key: (EXTRACT(year FROM data_pedido)), (EXTRACT(month FROM data_pedido)), (to_char(data_pedido, 'TMDay'::text))
+  Buffers: shared hit=1922 read=5708
+  ->  Gather Merge  (cost=16590.55..17590.53 rows=8586 width=96) (actual time=357.409..395.441 rows=72518.00 loops=1)
+        Workers Planned: 2
+        Workers Launched: 2
+        Buffers: shared hit=1922 read=5708
+        ->  Sort  (cost=15590.53..15599.47 rows=3578 width=96) (actual time=349.186..351.014 rows=24172.67 loops=3)
+              Sort Key: (EXTRACT(year FROM data_pedido)), (EXTRACT(month FROM data_pedido)), (to_char(data_pedido, 'TMDay'::text))
+              Sort Method: quicksort  Memory: 1718kB
+              Buffers: shared hit=1922 read=5708
+              Worker 0:  Sort Method: quicksort  Memory: 1709kB
+              Worker 1:  Sort Method: quicksort  Memory: 1711kB
+              ->  Parallel Seq Scan on pedido p  (cost=0.00..15379.33 rows=3578 width=96) (actual time=0.211..300.122 rows=24172.67 loops=3)
+                    Filter: (((status)::text = ANY ('{pago,enviado,entregue}'::text[])) AND (to_char(data_pedido, 'YYYY-MM'::text) = ANY ('{2026-03,2026-04,2026-05,2026-06}'::text[])) AND ((uf_entrega = 'CE'::bpchar) OR (uf_entrega = 'PI'::bpchar) OR (uf_entrega = 'RN'::bpchar) OR (uf_entrega = 'PE'::bpchar)))
+                    Rows Removed by Filter: 175827
+                    Buffers: shared hit=1832 read=5708
+Planning:
+  Buffers: shared hit=106
+Planning Time: 0.339 ms
+Execution Time: 409.373 ms

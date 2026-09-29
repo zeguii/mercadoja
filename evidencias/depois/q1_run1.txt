@@ -1,0 +1,65 @@
+                                                                                                                                 QUERY PLAN                                                                                                                                  
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=154051.14..154051.27 rows=51 width=71) (actual time=2148.823..2154.721 rows=12 loops=1)
+   Sort Key: (sum((((ip.quantidade)::numeric * ip.preco_unitario) - ip.desconto_item))) DESC
+   Sort Method: quicksort  Memory: 25kB
+   Buffers: shared hit=12047 read=11781, temp read=4094 written=4106
+   ->  GroupAggregate  (cost=71522.36..154049.70 rows=51 width=71) (actual time=1744.298..2154.647 rows=12 loops=1)
+         Group Key: cat_raiz.nome
+         Buffers: shared hit=12044 read=11781, temp read=4094 written=4106
+         ->  Gather Merge  (cost=71522.36..143268.62 rows=616025 width=44) (actual time=1697.814..1938.432 rows=624745 loops=1)
+               Workers Planned: 2
+               Workers Launched: 2
+               Buffers: shared hit=12044 read=11781, temp read=4094 written=4106
+               ->  Sort  (cost=70522.33..71164.03 rows=256677 width=44) (actual time=1664.299..1697.373 rows=208248 loops=3)
+                     Sort Key: cat_raiz.nome, p.pedido_id
+                     Sort Method: external merge  Disk: 10920kB
+                     Buffers: shared hit=12044 read=11781, temp read=4094 written=4106
+                     Worker 0:  Sort Method: external merge  Disk: 10896kB
+                     Worker 1:  Sort Method: external merge  Disk: 10936kB
+                     ->  Hash Join  (cost=15611.82..39564.43 rows=256677 width=44) (actual time=209.589..1083.665 rows=208248 loops=3)
+                           Hash Cond: (COALESCE(cat_f.categoria_pai_id, cat_f.categoria_id) = cat_raiz.categoria_id)
+                           Buffers: shared hit=11954 read=11781
+                           ->  Hash Join  (cost=15609.67..38832.51 rows=256677 width=29) (actual time=161.305..936.795 rows=208248 loops=3)
+                                 Hash Cond: (pr.categoria_id = cat_f.categoria_id)
+                                 Buffers: shared hit=11893 read=11781
+                                 ->  Hash Join  (cost=15607.52..38100.59 rows=256677 width=25) (actual time=161.273..828.373 rows=208248 loops=3)
+                                       Hash Cond: (ip.produto_id = pr.produto_id)
+                                       Buffers: shared hit=11890 read=11781
+                                       ->  Parallel Hash Join  (cost=14043.52..35862.75 rows=256677 width=29) (actual time=129.870..596.153 rows=208248 loops=3)
+                                             Hash Cond: (ip.pedido_id = p.pedido_id)
+                                             Buffers: shared hit=9874 read=11781
+                                             ->  Parallel Seq Scan on item_pedido ip  (cost=0.00..20091.97 rows=657997 width=29) (actual time=0.019..131.059 rows=526398 loops=3)
+                                                   Buffers: shared hit=7734 read=5778
+                                             ->  Parallel Hash  (cost=12824.50..12824.50 rows=97522 width=8) (actual time=123.354..123.354 rows=78996 loops=3)
+                                                   Buckets: 262144  Batches: 1  Memory Usage: 11360kB
+                                                   Buffers: shared hit=2140 read=6003
+                                                   ->  Parallel Seq Scan on pedido p  (cost=0.00..12824.50 rows=97522 width=8) (actual time=0.052..68.225 rows=78996 loops=3)
+                                                         Filter: ((data_pedido >= '2025-09-16 00:00:00'::timestamp without time zone) AND (data_pedido < '2026-09-16 00:00:00'::timestamp without time zone) AND ((status)::text = ANY ('{pago,enviado,entregue}'::text[])))
+                                                         Rows Removed by Filter: 121004
+                                                         Buffers: shared hit=2140 read=6003
+                                       ->  Hash  (cost=1064.00..1064.00 rows=40000 width=12) (actual time=31.097..31.098 rows=40000 loops=3)
+                                             Buckets: 65536  Batches: 1  Memory Usage: 2231kB
+                                             Buffers: shared hit=1992
+                                             ->  Seq Scan on produto pr  (cost=0.00..1064.00 rows=40000 width=12) (actual time=0.017..17.048 rows=40000 loops=3)
+                                                   Buffers: shared hit=1992
+                                 ->  Hash  (cost=1.51..1.51 rows=51 width=8) (actual time=0.019..0.020 rows=51 loops=3)
+                                       Buckets: 1024  Batches: 1  Memory Usage: 10kB
+                                       Buffers: shared hit=3
+                                       ->  Seq Scan on categoria cat_f  (cost=0.00..1.51 rows=51 width=8) (actual time=0.008..0.011 rows=51 loops=3)
+                                             Buffers: shared hit=3
+                           ->  Hash  (cost=1.51..1.51 rows=51 width=27) (actual time=48.232..48.232 rows=51 loops=3)
+                                 Buckets: 1024  Batches: 1  Memory Usage: 12kB
+                                 Buffers: shared hit=3
+                                 ->  Seq Scan on categoria cat_raiz  (cost=0.00..1.51 rows=51 width=27) (actual time=48.195..48.205 rows=51 loops=3)
+                                       Buffers: shared hit=3
+ Planning:
+   Buffers: shared hit=668 read=15
+ Planning Time: 1.978 ms
+ JIT:
+   Functions: 114
+   Options: Inlining false, Optimization false, Expressions true, Deforming true
+   Timing: Generation 3.479 ms, Inlining 0.000 ms, Optimization 18.095 ms, Emission 126.680 ms, Total 148.254 ms
+ Execution Time: 2169.680 ms
+(61 rows)
+

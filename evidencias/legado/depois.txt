@@ -1,0 +1,16 @@
+GroupAggregate  (cost=13834.31..16004.63 rows=70948 width=104) (actual time=103.270..132.509 rows=28.00 loops=1)
+  Group Key: (EXTRACT(year FROM data_pedido)), (EXTRACT(month FROM data_pedido)), (to_char(data_pedido, 'TMDay'::text))
+  Buffers: shared hit=417, temp read=251 written=252
+  ->  Sort  (cost=13834.31..14020.05 rows=74299 width=96) (actual time=102.189..117.908 rows=72518.00 loops=1)
+        Sort Key: (EXTRACT(year FROM data_pedido)), (EXTRACT(month FROM data_pedido)), (to_char(data_pedido, 'TMDay'::text))
+        Sort Method: external merge  Disk: 2008kB
+        Buffers: shared hit=417, temp read=251 written=252
+        ->  Index Only Scan using idx_pedido_status_data_uf on pedido p  (cost=0.42..4011.63 rows=74299 width=96) (actual time=0.258..50.596 rows=72518.00 loops=1)
+              Index Cond: ((status = ANY ('{pago,enviado,entregue}'::text[])) AND (data_pedido >= '2026-03-01 00:00:00'::timestamp without time zone) AND (data_pedido < '2026-07-01 00:00:00'::timestamp without time zone) AND (uf_entrega = ANY ('{CE,PI,RN,PE}'::bpchar[])))
+              Heap Fetches: 0
+              Index Searches: 3
+              Buffers: shared hit=411
+Planning:
+  Buffers: shared hit=211
+Planning Time: 0.572 ms
+Execution Time: 133.216 ms

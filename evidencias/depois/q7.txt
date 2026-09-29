@@ -1,0 +1,28 @@
+Limit  (cost=84045.05..84045.30 rows=100 width=33) (actual time=676.915..676.932 rows=100.00 loops=1)
+  Buffers: shared hit=8935, temp read=2575 written=5181
+  ->  Sort  (cost=84045.05..84473.77 rows=171487 width=33) (actual time=676.914..676.921 rows=100.00 loops=1)
+        Sort Key: (count(*)) DESC, c.cliente_id, ((p.data_pedido)::date)
+        Sort Method: top-N heapsort  Memory: 36kB
+        Buffers: shared hit=8935, temp read=2575 written=5181
+        ->  HashAggregate  (cost=63597.84..77490.94 rows=171487 width=33) (actual time=488.439..676.180 rows=1610.00 loops=1)
+              Group Key: c.cliente_id, (p.data_pedido)::date
+              Filter: (count(*) >= 2)
+              Planned Partitions: 8  Batches: 9  Memory Usage: 8281kB  Disk Usage: 23616kB
+              Rows Removed by Filter: 512858
+              Buffers: shared hit=8929, temp read=2575 written=5181
+              ->  Hash Join  (cost=3639.00..21315.66 rows=514460 width=25) (actual time=27.394..324.053 rows=516085.00 loops=1)
+                    Hash Cond: (p.cliente_id = c.cliente_id)
+                    Buffers: shared hit=8929
+                    ->  Seq Scan on pedido p  (cost=0.00..15040.00 rows=514460 width=16) (actual time=0.023..71.514 rows=516085.00 loops=1)
+                          Filter: ((status)::text <> 'cancelado'::text)
+                          Rows Removed by Filter: 83915
+                          Buffers: shared hit=7540
+                    ->  Hash  (cost=2389.00..2389.00 rows=100000 width=21) (actual time=27.097..27.098 rows=100000.00 loops=1)
+                          Buckets: 131072  Batches: 1  Memory Usage: 6493kB
+                          Buffers: shared hit=1389
+                          ->  Seq Scan on cliente c  (cost=0.00..2389.00 rows=100000 width=21) (actual time=0.009..10.277 rows=100000.00 loops=1)
+                                Buffers: shared hit=1389
+Planning:
+  Buffers: shared hit=256
+Planning Time: 3.123 ms
+Execution Time: 681.354 ms

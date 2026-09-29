@@ -1,0 +1,62 @@
+                                                                                                                                    QUERY PLAN                                                                                                                                     
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=172123.07..172123.12 rows=20 width=88) (actual time=1901.883..1905.938 rows=20 loops=1)
+   Buffers: shared hit=11398 read=12537, temp read=5860 written=5878
+   ->  Sort  (cost=172123.07..173678.60 rows=622210 width=88) (actual time=1885.052..1889.105 rows=20 loops=1)
+         Sort Key: (sum(ip.quantidade)) DESC, pr.produto_id
+         Sort Method: top-N heapsort  Memory: 28kB
+         Buffers: shared hit=11398 read=12537, temp read=5860 written=5878
+         ->  Finalize GroupAggregate  (cost=73032.87..155566.29 rows=622210 width=88) (actual time=1358.251..1875.112 rows=40000 loops=1)
+               Group Key: pr.produto_id, l.nome_fantasia
+               Buffers: shared hit=11398 read=12537, temp read=5860 written=5878
+               ->  Gather Merge  (cost=73032.87..141307.31 rows=518508 width=88) (actual time=1358.214..1808.711 rows=119347 loops=1)
+                     Workers Planned: 2
+                     Workers Launched: 2
+                     Buffers: shared hit=11398 read=12537, temp read=5860 written=5878
+                     ->  Partial GroupAggregate  (cost=72032.84..80458.60 rows=259254 width=88) (actual time=1318.519..1463.685 rows=39782 loops=3)
+                           Group Key: pr.produto_id, l.nome_fantasia
+                           Buffers: shared hit=11398 read=12537, temp read=5860 written=5878
+                           ->  Sort  (cost=72032.84..72680.98 rows=259254 width=61) (actual time=1318.478..1357.898 rows=208248 loops=3)
+                                 Sort Key: pr.produto_id, l.nome_fantasia
+                                 Sort Method: external merge  Disk: 15576kB
+                                 Buffers: shared hit=11398 read=12537, temp read=5860 written=5878
+                                 Worker 0:  Sort Method: external merge  Disk: 15608kB
+                                 Worker 1:  Sort Method: external merge  Disk: 15696kB
+                                 ->  Hash Join  (cost=15792.26..38973.22 rows=259254 width=61) (actual time=219.646..1002.004 rows=208248 loops=3)
+                                       Hash Cond: (pr.loja_id = l.loja_id)
+                                       Buffers: shared hit=11308 read=12537
+                                       ->  Hash Join  (cost=15619.76..38119.60 rows=259254 width=55) (actual time=187.228..844.234 rows=208248 loops=3)
+                                             Hash Cond: (ip.produto_id = pr.produto_id)
+                                             Buffers: shared hit=11110 read=12537
+                                             ->  Parallel Hash Join  (cost=14055.76..35874.99 rows=259254 width=21) (actual time=146.932..606.303 rows=208248 loops=3)
+                                                   Hash Cond: (ip.pedido_id = p.pedido_id)
+                                                   Buffers: shared hit=9118 read=12537
+                                                   ->  Parallel Seq Scan on item_pedido ip  (cost=0.00..20091.97 rows=657997 width=29) (actual time=0.026..118.467 rows=526398 loops=3)
+                                                         Buffers: shared hit=7829 read=5683
+                                                   ->  Parallel Hash  (cost=12824.50..12824.50 rows=98501 width=8) (actual time=142.723..142.724 rows=78996 loops=3)
+                                                         Buckets: 262144  Batches: 1  Memory Usage: 11360kB
+                                                         Buffers: shared hit=1289 read=6854
+                                                         ->  Parallel Seq Scan on pedido p  (cost=0.00..12824.50 rows=98501 width=8) (actual time=2.781..98.907 rows=78996 loops=3)
+                                                               Filter: ((data_pedido >= '2025-09-16 00:00:00'::timestamp without time zone) AND (data_pedido < '2026-09-16 00:00:00'::timestamp without time zone) AND ((status)::text = ANY ('{pago,enviado,entregue}'::text[])))
+                                                               Rows Removed by Filter: 121004
+                                                               Buffers: shared hit=1289 read=6854
+                                             ->  Hash  (cost=1064.00..1064.00 rows=40000 width=42) (actual time=40.039..40.039 rows=40000 loops=3)
+                                                   Buckets: 65536  Batches: 1  Memory Usage: 3560kB
+                                                   Buffers: shared hit=1992
+                                                   ->  Seq Scan on produto pr  (cost=0.00..1064.00 rows=40000 width=42) (actual time=2.701..15.133 rows=40000 loops=3)
+                                                         Buffers: shared hit=1992
+                                       ->  Hash  (cost=110.00..110.00 rows=5000 width=22) (actual time=32.378..32.379 rows=5000 loops=3)
+                                             Buckets: 8192  Batches: 1  Memory Usage: 338kB
+                                             Buffers: shared hit=180
+                                             ->  Seq Scan on loja l  (cost=0.00..110.00 rows=5000 width=22) (actual time=31.097..31.593 rows=5000 loops=3)
+                                                   Buffers: shared hit=180
+ Planning:
+   Buffers: shared hit=452
+ Planning Time: 1.475 ms
+ JIT:
+   Functions: 103
+   Options: Inlining false, Optimization false, Expressions true, Deforming true
+   Timing: Generation 21.067 ms, Inlining 0.000 ms, Optimization 5.073 ms, Emission 105.255 ms, Total 131.394 ms
+ Execution Time: 1922.025 ms
+(58 rows)
+

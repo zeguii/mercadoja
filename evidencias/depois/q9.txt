@@ -1,0 +1,35 @@
+GroupAggregate  (cost=122297.29..132399.29 rows=200 width=44) (actual time=1279.528..1459.971 rows=31.00 loops=1)
+  Group Key: pp.mes_aquisicao
+  Buffers: shared hit=15086, temp read=3626 written=5152
+  ->  Sort  (cost=122297.29..123138.91 rows=336650 width=24) (actual time=1253.468..1336.385 rows=473713.00 loops=1)
+        Sort Key: pp.mes_aquisicao, pp.cliente_id
+        Sort Method: external merge  Disk: 15776kB
+        Buffers: shared hit=15086, temp read=3626 written=5152
+        ->  Hash Right Join  (cost=71003.42..84485.82 rows=336650 width=24) (actual time=630.313..1020.830 rows=473713.00 loops=1)
+              Hash Cond: (pedido.cliente_id = pp.cliente_id)
+              Buffers: shared hit=15080, temp read=1654 written=3173
+              ->  HashAggregate  (cost=49283.74..58515.89 rows=336650 width=16) (actual time=280.753..477.345 rows=473713.00 loops=1)
+                    Group Key: pedido.cliente_id, date_trunc('month'::text, pedido.data_pedido)
+                    Planned Partitions: 4  Batches: 5  Memory Usage: 8249kB  Disk Usage: 15384kB
+                    Buffers: shared hit=7540, temp read=1650 written=3145
+                    ->  Seq Scan on pedido  (cost=0.00..16326.15 rows=514460 width=16) (actual time=0.032..116.651 rows=516085.00 loops=1)
+                          Filter: ((status)::text <> 'cancelado'::text)
+                          Rows Removed by Filter: 83915
+                          Buffers: shared hit=7540
+              ->  Hash  (cost=20634.59..20634.59 rows=86807 width=16) (actual time=349.269..349.271 rows=99436.00 loops=1)
+                    Buckets: 131072  Batches: 1  Memory Usage: 5686kB
+                    Buffers: shared hit=7540, temp read=4 written=28
+                    ->  Subquery Scan on pp  (cost=18898.45..20634.59 rows=86807 width=16) (actual time=293.548..329.639 rows=99436.00 loops=1)
+                          Buffers: shared hit=7540, temp read=4 written=28
+                          ->  HashAggregate  (cost=18898.45..19766.52 rows=86807 width=16) (actual time=293.547..319.767 rows=99436.00 loops=1)
+                                Group Key: pedido_1.cliente_id
+                                Batches: 5  Memory Usage: 8249kB  Disk Usage: 200kB
+                                Buffers: shared hit=7540, temp read=4 written=28
+                                ->  Seq Scan on pedido pedido_1  (cost=0.00..15040.00 rows=514460 width=16) (actual time=0.032..75.793 rows=516085.00 loops=1)
+                                      Filter: ((status)::text <> 'cancelado'::text)
+                                      Rows Removed by Filter: 83915
+                                      Buffers: shared hit=7540
+Planning:
+  Buffers: shared hit=177
+Planning Time: 0.638 ms
+Execution Time: 1467.178 ms

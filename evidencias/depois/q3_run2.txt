@@ -1,0 +1,33 @@
+                                                                                                      QUERY PLAN                                                                                                       
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=63718.45..63719.70 rows=500 width=66) (actual time=564.252..564.317 rows=500 loops=1)
+   Buffers: shared hit=603670
+   ->  Sort  (cost=63718.45..63743.12 rows=9867 width=66) (actual time=564.250..564.277 rows=500 loops=1)
+         Sort Key: a.total_gasto DESC, a.cliente_id
+         Sort Method: top-N heapsort  Memory: 90kB
+         Buffers: shared hit=603670
+         ->  Hash Join  (cost=60499.61..63226.79 rows=9867 width=66) (actual time=512.286..542.276 rows=48590 loops=1)
+               Hash Cond: (c.cliente_id = a.cliente_id)
+               Buffers: shared hit=603664
+               ->  Seq Scan on cliente c  (cost=0.00..2440.00 rows=100000 width=30) (actual time=0.005..7.020 rows=100000 loops=1)
+                     Buffers: shared hit=1440
+               ->  Hash  (cost=60376.27..60376.27 rows=9867 width=48) (actual time=512.211..512.213 rows=48590 loops=1)
+                     Buckets: 65536 (originally 16384)  Batches: 1 (originally 1)  Memory Usage: 3478kB
+                     Buffers: shared hit=602224
+                     ->  Subquery Scan on a  (cost=0.42..60376.27 rows=9867 width=48) (actual time=0.064..500.486 rows=48590 loops=1)
+                           Buffers: shared hit=602224
+                           ->  GroupAggregate  (cost=0.42..60277.60 rows=9867 width=48) (actual time=0.063..495.237 rows=48590 loops=1)
+                                 Group Key: pedido.cliente_id
+                                 Filter: ((max(pedido.data_pedido) < '2026-06-17 00:00:00'::timestamp without time zone) AND (sum(((pedido.valor_produtos - pedido.valor_desconto) + pedido.valor_frete)) >= 2000.00))
+                                 Rows Removed by Filter: 50846
+                                 Buffers: shared hit=602224
+                                 ->  Index Scan using idx_pedido_cliente_data on pedido  (cost=0.42..52296.25 rows=514180 width=31) (actual time=0.017..293.606 rows=516085 loops=1)
+                                       Filter: ((status)::text <> 'cancelado'::text)
+                                       Rows Removed by Filter: 83915
+                                       Buffers: shared hit=602224
+ Planning:
+   Buffers: shared hit=246
+ Planning Time: 0.673 ms
+ Execution Time: 564.468 ms
+(29 rows)
+

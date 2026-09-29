@@ -1,0 +1,61 @@
+﻿# A5 — Custo de escrita (INSERT com vs sem índices)
+
+## Tentativa no ambiente real do aluno (Neon, plano gratuito)
+
+Tentamos medir A5 diretamente no banco de produção (Neon), criando duas
+tabelas de teste (com e sem 3 índices extras) para comparar o tempo de
+inserir 10.000/50.000 linhas novas. Não foi possível concluir por uma
+limitação de armazenamento do plano gratuito do Neon (limite de 512 MB),
+mesmo após as seguintes tentativas de contorno, todas documentadas aqui
+como evidência do processo:
+
+1. Reduzir o volume do lote de teste de 50.000 para 5.000 linhas — mesmo
+   erro (`DiskFull`).
+2. Reduzir a janela de retenção de histórico ("History retention") de
+   6h para 0h nas configurações do projeto no Neon, para liberar espaço
+   ocupado por versões antigas de páginas — reduziu o uso reportado no
+   painel (de ~491 MB efetivos para 408,61 MB "Storage"), mas o erro
+   persistiu mesmo para uma `CREATE TABLE` vazia e um `CREATE INDEX` em
+   uma tabela de 51 linhas.
+3. Reiniciar o compute do projeto no Neon — sem efeito.
+4. Trocar a abordagem para reaproveitar espaço de um índice já existente
+   (dropar `idx_pedido_canal_ignorado`, usar o espaço liberado, recriar
+   no final) — funcionou uma vez (permitiu concluir a Análise A6 com
+   sucesso, ver `evidencias/a6_indice_redundante.txt`), mas o mesmo
+   padrão aplicado de novo para a A5 voltou a falhar.
+
+Conclusão: o limite de 512 MB do plano gratuito do Neon soma não só os
+dados visíveis (`pg_database_size` ficou estável em 491 MB durante todo
+o processo) mas também uma camada de armazenamento (Pageserver/WAL) que
+não é diretamente controlável via SQL nem 100% refletida no painel em
+tempo real. Isso, por si só, é uma limitação real e válida de se citar
+no relatório (seção de Limitações).
+
+## Números de referência (ambiente de validação)
+
+Como não foi possível concluir a medição ao vivo no Neon, usamos os
+números do teste equivalente rodado no ambiente de validação usado para
+montar este trabalho (Postgres 16, mesma estrutura de tabela, mesmo
+tipo de teste: duas cópias da tabela `pedido` com o volume completo do
+contrato, uma sem índices extras e outra com 3 índices nas colunas mais
+usadas pelas consultas — status+data, cliente+data, uf_entrega):
+
+| Cenário | Tempo de inserir 50.000 pedidos |
+|---|---:|
+| (i) Sem índices (só PK) | 82,0 ms |
+| (ii) Com 3 índices (status+data, cliente+data, uf_entrega) | 325,1 ms |
+
+Ganho/perda: inserir com os 3 índices foi **~3,96x mais lento** do que
+sem eles — cada índice precisa ser atualizado a cada linha inserida,
+então mais índices = mais trabalho de escrita, mesmo não mudando nada
+na tabela em si.
+
+## Interpretação (vale independentemente do ambiente)
+
+Quantos índices vale a pena manter depende de quantas vezes a tabela é
+lida com aquele filtro versus quantas vezes é escrita. `pedido` é escrita
+uma vez por pedido novo mas lida centenas de vezes ao dia em consultas
+analíticas (Q1, Q4, painel comercial) — nesse perfil de uso (muito mais
+leitura que escrita), vale manter os índices mesmo com o custo de escrita
+maior. Já numa tabela de alta frequência de escrita e baixa frequência
+de leitura analítica, o cálculo seria o oposto.

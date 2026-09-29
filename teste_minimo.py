@@ -1,0 +1,10 @@
+﻿import psycopg2
+DSN = open("dsn.txt", encoding="utf-8-sig").read().strip()
+conn = psycopg2.connect(DSN)
+cur = conn.cursor()
+cur.execute("CREATE INDEX IF NOT EXISTS teste_minusculo ON categoria (nome);")
+conn.commit()
+print("Índice minúsculo criado com sucesso (tabela categoria tem só 51 linhas)")
+cur.execute("DROP INDEX teste_minusculo;")
+conn.commit()
+print("Removido de novo, sem problema.")

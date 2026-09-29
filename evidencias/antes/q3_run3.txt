@@ -1,0 +1,46 @@
+                                                                                                      QUERY PLAN                                                                                                       
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=67677.27..67678.52 rows=500 width=66) (actual time=835.323..835.468 rows=500 loops=1)
+   Buffers: shared hit=3184 read=6470, temp read=2657 written=2666
+   ->  Sort  (cost=67677.27..67701.48 rows=9682 width=66) (actual time=835.321..835.427 rows=500 loops=1)
+         Sort Key: a.total_gasto DESC, a.cliente_id
+         Sort Method: top-N heapsort  Memory: 90kB
+         Buffers: shared hit=3184 read=6470, temp read=2657 written=2666
+         ->  Hash Join  (cost=64468.11..67194.83 rows=9682 width=66) (actual time=782.674..813.630 rows=48590 loops=1)
+               Hash Cond: (c.cliente_id = a.cliente_id)
+               Buffers: shared hit=3181 read=6470, temp read=2657 written=2666
+               ->  Seq Scan on cliente c  (cost=0.00..2440.00 rows=100000 width=30) (actual time=0.006..8.736 rows=100000 loops=1)
+                     Buffers: shared hit=1440
+               ->  Hash  (cost=64347.09..64347.09 rows=9682 width=48) (actual time=782.598..782.678 rows=48590 loops=1)
+                     Buckets: 65536 (originally 16384)  Batches: 1 (originally 1)  Memory Usage: 3478kB
+                     Buffers: shared hit=1741 read=6470, temp read=2657 written=2666
+                     ->  Subquery Scan on a  (cost=36540.52..64347.09 rows=9682 width=48) (actual time=250.901..770.644 rows=48590 loops=1)
+                           Buffers: shared hit=1741 read=6470, temp read=2657 written=2666
+                           ->  Finalize GroupAggregate  (cost=36540.52..64250.27 rows=9682 width=48) (actual time=250.900..765.069 rows=48590 loops=1)
+                                 Group Key: pedido.cliente_id
+                                 Filter: ((max(pedido.data_pedido) < '2026-06-17 00:00:00'::timestamp without time zone) AND (sum(((pedido.valor_produtos - pedido.valor_desconto) + pedido.valor_frete)) >= 2000.00))
+                                 Rows Removed by Filter: 50846
+                                 Buffers: shared hit=1741 read=6470, temp read=2657 written=2666
+                                 ->  Gather Merge  (cost=36540.52..60982.52 rows=174280 width=48) (actual time=250.882..639.735 rows=246300 loops=1)
+                                       Workers Planned: 2
+                                       Workers Launched: 2
+                                       Buffers: shared hit=1741 read=6470, temp read=2657 written=2666
+                                       ->  Partial GroupAggregate  (cost=35540.50..39866.26 rows=87140 width=48) (actual time=241.967..353.435 rows=82100 loops=3)
+                                             Group Key: pedido.cliente_id
+                                             Buffers: shared hit=1741 read=6470, temp read=2657 written=2666
+                                             ->  Sort  (cost=35540.50..36079.92 rows=215767 width=31) (actual time=241.950..262.733 rows=172028 loops=3)
+                                                   Sort Key: pedido.cliente_id
+                                                   Sort Method: external merge  Disk: 7248kB
+                                                   Buffers: shared hit=1741 read=6470, temp read=2657 written=2666
+                                                   Worker 0:  Sort Method: external merge  Disk: 7008kB
+                                                   Worker 1:  Sort Method: external merge  Disk: 7000kB
+                                                   ->  Parallel Seq Scan on pedido  (cost=0.00..11262.00 rows=215767 width=31) (actual time=0.176..94.333 rows=172028 loops=3)
+                                                         Filter: ((status)::text <> 'cancelado'::text)
+                                                         Rows Removed by Filter: 27972
+                                                         Buffers: shared hit=1667 read=6470
+ Planning:
+   Buffers: shared hit=179
+ Planning Time: 0.609 ms
+ Execution Time: 836.110 ms
+(42 rows)
+
