@@ -100,8 +100,7 @@ aluno; e orientar passo a passo a execução real de todo o pipeline no
 banco de produção do aluno (Neon) — incluindo o diagnóstico e contorno
 de um problema real de limite de armazenamento do plano gratuito durante
 a Análise A5. Cada decisão de índice e cada reescrita têm comentário de
-"por quê" junto ao SQL — releia antes de defender o trabalho, pois a
-banca pode pedir reprodução ao vivo de qualquer linha ou número.
+"por quê" junto ao SQL
 
 ## O que ainda precisa ser feito
 - `modelo/der.png` — exportar um diagrama ER visual (dbdiagram.io,
